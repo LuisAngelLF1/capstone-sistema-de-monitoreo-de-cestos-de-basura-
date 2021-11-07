@@ -1,3 +1,4 @@
+#Rama Luis
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime
@@ -44,3 +45,4 @@ except KeyboardInterrupt:
 	print ('\n' + 'termina la captura de datos.' + '\n')
 	f.close
 	GPIO.cleanup()
+
