@@ -5,6 +5,7 @@ Repositorio para proyecto Capstone de IoT
 ## Integrantes
 - Laura Gabriel Santes [LauraGabrielSantes](https://github.com/LauraGabrielSantes)
 - Luis Ángel López Flores  [LuisAngelLF1](https://github.com/LuisAngelLF1)
+- Abraham Gonzales Morales [AbrahamGonMo] (https://github.com/AbrahamGonMo)
 
 ## Objetivos
 ### Objetivo General
