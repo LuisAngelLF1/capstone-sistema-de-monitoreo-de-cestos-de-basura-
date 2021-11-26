@@ -2,10 +2,6 @@
 "sistema de monitoreo de cestos de basura" """
 # @author: Luis Lopez
 
-
-#Rama Luis
-
-
 import RPi.GPIO as GPIO#se importa la libreria para manejar los pines de la raspberry
 import time #libreria para funcionalidaes relacionadas al tiempo
 from datetime import datetime
@@ -14,7 +10,7 @@ import paho.mqtt.client
 GPIO.setmode(GPIO.BCM) #se establece el modo BCM de los pines raspberry
 GPIO_TRIGGER = 23 #trigger del sensor hcr04
 GPIO_ECHO    = 24 #echo del sensor hcr04
-GPIO.setup(GPIO_TRIGGER,GPIO.OUT) #establece el pin trgger como salida
+GPIO.setup(GPIO_TRIGGER,GPIO.OUT) #establece el pin trigger como salida
 GPIO.setup(GPIO_ECHO,GPIO.IN) #establece el pin echo como entrada
 GPIO.output(GPIO_TRIGGER, False) #pin de salida trigger inicialmente apagado
 
@@ -43,7 +39,7 @@ try: #manejo de excepciones
 			stop = time.time()# registro alto de tiempo
 		elapsed = stop-start #resta para saber lapso de tiempo
 		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo
-		sTimeStamp = time.strftime('%Y %m %d %H %M %S') #formato año mes dia hora minuto segundo
+		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
 		f.write(sTimeStamp + ',' + str(distance) + '\n') #se escribe en el archivo formato, cadena de la distancia
 		print (sTimeStamp + ' ' + str(distance)) #se muestra en consola
 		#MQTT
@@ -58,6 +54,7 @@ try: #manejo de excepciones
 			f.close() #cierra el archivo
 			sFileName = '\out' + sTmpFileStamp + '.txt'
 			f=open(sFileName, 'a') #manejador para archivo
+
 			sFileStamp = sTmpFileStamp #actualiza sFileStamp
 			print ("creando el archivo")#impresion en consola
 
