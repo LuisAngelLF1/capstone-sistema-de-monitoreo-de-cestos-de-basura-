@@ -9,10 +9,10 @@
 import RPi.GPIO as GPIO#se importa la libreria para manejar los pines de la raspberry
 import time #libreria para funcionalidaes relacionadas al tiempo
 from datetime import datetime
-import paho.mqtt.client
+import paho.mqtt.client #libreria para manejo de mqtt
 
-GPIO.setmode(GPIO.BCM) #se establece el modo BCM de los pines raspberry
-GPIO_TRIGGER = 23 #trigger del sensor hcr04
+GPIO.setmode(GPIO.BCM) #se establece el modo BCM (por GPIO)de los pines raspberry
+GPIO_TRIGGER = 23 #trigger del sensor hcr04 se activa para enviar señal
 GPIO_ECHO    = 24 #echo del sensor hcr04
 GPIO.setup(GPIO_TRIGGER,GPIO.OUT) #establece el pin trgger como salida
 GPIO.setup(GPIO_ECHO,GPIO.IN) #establece el pin echo como entrada
@@ -42,8 +42,8 @@ try: #manejo de excepciones
 		while GPIO.input(GPIO_ECHO)==1:# mientras echo encendido
 			stop = time.time()# registro alto de tiempo
 		elapsed = stop-start #resta para saber lapso de tiempo
-		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo
-		sTimeStamp = time.strftime('%Y %m %d %H %M %S') #formato año mes dia hora minuto segundo
+		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo(t(s)*velSonido(343m/s)/2) 1m/s=1*10**2cm/s
+		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
 		f.write(sTimeStamp + ',' + str(distance) + '\n') #se escribe en el archivo formato, cadena de la distancia
 		print (sTimeStamp + ' ' + str(distance)) #se muestra en consola
 		#MQTT
