@@ -5,6 +5,7 @@ Repositorio para proyecto Capstone de IoT
 ## Integrantes
 - Laura Gabriel Santes [LauraGabrielSantes](https://github.com/LauraGabrielSantes)
 - Luis Ángel López Flores  [LuisAngelLF1](https://github.com/LuisAngelLF1)
+- Abraham Gonzales Morales [AbrahamGonMo](https://github.com/AbrahamGonMo)
 
 ## Objetivos
 ### Objetivo General
@@ -27,4 +28,4 @@ Monitorear cestos de basura para su recolección.
 El manejo de los desechos es clave en áreas urbanas para el cuidado del medio ambiente; requiere de planeación y presupuesto. Los contenedores no siempre tienen un control de limpieza, la basura se acumula y su estado decae haciendolo un peligro para el medio ambiente y las comunidades. Es por eso que con este proyecto se pretende tener un control e indicadores del estado de los cestos de basura para prevenir riesgos de sanidad y acumulación de la misma.  
 
 
-## [Video](https://drive.google.com/file/d/10L-C0DdpKlXSq7W9cj7FGniG7tdJ9u39/view?usp=sharing)
+## [Video](https://drive.google.com/file/d/1dsWmhlE_vvf2uUO2agA9k3RO6vNFpHq4/view?usp=sharing)
