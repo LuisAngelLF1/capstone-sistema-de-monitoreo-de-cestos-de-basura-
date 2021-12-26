@@ -38,11 +38,7 @@ try: #manejo de excepciones
 		while GPIO.input(GPIO_ECHO)==1:# mientras echo encendido
 			stop = time.time()# registro alto de tiempo
 		elapsed = stop-start #resta para saber lapso de tiempo
-<<<<<<< HEAD
 		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo(t(s)*velSonido(343m/s)/2) 1m/s=1*10**2cm/s
-=======
-		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo
->>>>>>> 98029dece6ac28b43772d1fbd3f692e84a6c2c4e
 		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
 		f.write(sTimeStamp + ',' + str(distance) + '\n') #se escribe en el archivo formato, cadena de la distancia
 		print (sTimeStamp + ' ' + str(distance)) #se muestra en consola
