@@ -5,7 +5,6 @@ Repositorio para proyecto Capstone de IoT
 ## Integrantes
 - Laura Gabriel Santes [LauraGabrielSantes](https://github.com/LauraGabrielSantes)
 - Luis Ángel López Flores  [LuisAngelLF1](https://github.com/LuisAngelLF1)
-- Abraham Gonzales Morales [AbrahamGonMo](https://github.com/AbrahamGonMo)
 
 ## Objetivos
 ### Objetivo General
@@ -19,8 +18,6 @@ Monitorear cestos de basura para su recolección.
 ## Materiales:
 - Sensor ultra sónico HC-SR04
 - Sensor de temperatura-humedad DHT11
-- Sensor de humedad en tierra Grove
-- Sensor de gas MQ6
 - Raspberry Pi 3  
 
 
