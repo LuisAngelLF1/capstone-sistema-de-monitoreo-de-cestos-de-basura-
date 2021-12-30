@@ -6,6 +6,7 @@ import RPi.GPIO as GPIO#se importa la libreria para manejar los pines de la rasp
 import time #libreria para funcionalidaes relacionadas al tiempo
 from datetime import datetime
 import paho.mqtt.client #libreria para manejo de mqtt
+import Adafruit_DHT  #libreria para manejo del sensor dht11 de temperatura
 
 GPIO.setmode(GPIO.BCM) #se establece el modo BCM (por GPIO)de los pines raspberry
 GPIO_TRIGGER = 23 #trigger del sensor hcr04 se activa para enviar señal
@@ -14,11 +15,22 @@ GPIO.setup(GPIO_TRIGGER,GPIO.OUT) #establece el pin trigger como salida
 GPIO.setup(GPIO_ECHO,GPIO.IN) #establece el pin echo como entrada
 GPIO.output(GPIO_TRIGGER, False) #pin de salida trigger inicialmente apagado
 
+# read data using pin 4
+sensor = Adafruit_DHT.DHT11 
+pindht = 4 #referencia a pin 4 bcm asociado a sensor de temperatura
+
+
 #MQTT
 def on_connect(client, userdata, flags, rc):
 	print('connected (%s)' % client._client_id)
-client = paho.mqtt.client.Client(client_id='sensorDistancia', clean_session=False)
-client.connect(host='localhost', port=1883)
+clientDistancia = paho.mqtt.client.Client(client_id='sensorDistancia', clean_session=False)
+clientDistancia.connect(host='localhost', port=1883)
+#cliente mqtt de temperatura
+clientTemperatura = paho.mqtt.client.Client(client_id='sensorTemperatura', clean_session=False)
+clientTemperatura.connect(host='localhost', port=1883)
+#cliente mqtt de humedad
+clientHumedad = paho.mqtt.client.Client(client_id='sensorHumedad', clean_session=False)
+clientHumedad.connect(host='localhost', port=1883)
 
 sFileStamp = time.strftime('%Y %m %d %H')#formato año mes dia hora
 sFileName = '\out' + sFileStamp + '.txt' #se concatena el formato con la extension .txt
@@ -28,7 +40,6 @@ print ("Inicia la toma de datos") #impresion en consola
 
 try: #manejo de excepciones
 	while True: #inicio bucle while
-		print ("acerque el objeto para medir la distancia") #impresion por consola
 		GPIO.output(GPIO_TRIGGER,True) #la salida trigger encendido
 		time.sleep(0.00001) # espera de 10 micros 0.00001s 
 		GPIO.output(GPIO_TRIGGER,False) #salida trigger apagado
@@ -40,10 +51,24 @@ try: #manejo de excepciones
 		elapsed = stop-start #resta para saber lapso de tiempo
 		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo(t(s)*velSonido(343m/s)/2) 1m/s=1*10**2cm/s
 		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
-		f.write(sTimeStamp + ',' + str(distance) + '\n') #se escribe en el archivo formato, cadena de la distancia
-		print (sTimeStamp + ' ' + str(distance)) #se muestra en consola
+		f.write(sTimeStamp + ' Distancia: ' + str(distance) + ' cm \n') #se escribe en el archivo formato, cadena de la distancia
+		print (sTimeStamp + ' Distancia: ' + str(distance)+' cm') #se muestra en consola
+		
+		humedad, temperatura = Adafruit_DHT.read_retry(sensor, pindht) #se len los valores del sensor de temperatura
+		
+		f.write(sTimeStamp + ' Temperatura: ' + str(temperatura) + ' C° \n') #se escribe en el archivo formato, cadena de la distancia
+		f.write(sTimeStamp + ' Humedad: ' + str(humedad) + ' % \n') #se escribe en el archivo formato, cadena de la distancia
+		print(sTimeStamp+' Temperatura: ' + str(temperatura) + ' C°')
+		print(sTimeStamp + ' Humedad: ' + str(humedad) + ' % \n')
+		
 		#MQTT
-		client.publish('samsung/codigoiot/casa/cesto',distance)#se publica la distancia en mqtt
+		#publica distancia
+		clientDistancia.publish('samsung/codigoiot/casa/cesto/distancia',distance)#se publica la distancia en mqtt
+		#publica Temperatura
+		clientTemperatura.publish('samsung/codigoiot/casa/cesto/temperatura',temperatura)#se publica la temperatura en mqtt
+		#publica Humedad
+		clientHumedad.publish('samsung/codigoiot/casa/cesto/humedad',humedad)#se publica la humedad en mqtt
+
 		#comando para suscribirse en consola
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i miCliente
 		#comando para publicar en consola
