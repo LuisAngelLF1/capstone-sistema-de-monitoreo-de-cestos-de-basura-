@@ -12,7 +12,6 @@ Monitorear cestos de basura para su recolección.
 
 ### Objetivos Específicos
 - Monitorear el nivel de contenido de cestos de basura.
-- Prevenir posibles accidentes provocados por objetos flamables.
 - Monitorear el estado de descomposición de la basura.
 
 ## Materiales:
