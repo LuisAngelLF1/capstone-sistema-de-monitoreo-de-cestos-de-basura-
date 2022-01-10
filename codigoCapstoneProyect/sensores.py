@@ -19,6 +19,9 @@ GPIO.output(GPIO_TRIGGER, False) #pin de salida trigger inicialmente apagado
 sensor = Adafruit_DHT.DHT11 
 pindht = 4 #referencia a pin 4 bcm asociado a sensor de temperatura
 
+#tierra grove
+pinTierra=21
+GPIO.setup(pinTierra,GPIO.IN)
 
 #MQTT
 def on_connect(client, userdata, flags, rc):
@@ -31,6 +34,9 @@ clientTemperatura.connect(host='localhost', port=1883)
 #cliente mqtt de humedad
 clientHumedad = paho.mqtt.client.Client(client_id='sensorHumedad', clean_session=False)
 clientHumedad.connect(host='localhost', port=1883)
+#cliente mqtt de humedad en tierra grove
+clientHumedadTierra = paho.mqtt.client.Client(client_id='sensorHumedadTierra', clean_session=False)
+clientHumedadTierra.connect(host='localhost', port=1883)
 
 sFileStamp = time.strftime('%Y %m %d %H')#formato año mes dia hora
 sFileName = '\out' + sFileStamp + '.txt' #se concatena el formato con la extension .txt
@@ -53,14 +59,22 @@ try: #manejo de excepciones
 		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
 		f.write(sTimeStamp + ' Distancia: ' + str(distance) + ' cm \n') #se escribe en el archivo formato, cadena de la distancia
 		print (sTimeStamp + ' Distancia: ' + str(distance)+' cm') #se muestra en consola
-		
+		#dht
 		humedad, temperatura = Adafruit_DHT.read_retry(sensor, pindht) #se len los valores del sensor de temperatura
 		
 		f.write(sTimeStamp + ' Temperatura: ' + str(temperatura) + ' C° \n') #se escribe en el archivo formato, cadena de la distancia
 		f.write(sTimeStamp + ' Humedad: ' + str(humedad) + ' % \n') #se escribe en el archivo formato, cadena de la distancia
 		print(sTimeStamp+' Temperatura: ' + str(temperatura) + ' C°')
-		print(sTimeStamp + ' Humedad: ' + str(humedad) + ' % \n')
+		print(sTimeStamp + ' Humedad: ' + str(humedad) + ' %')
+		#grove tierra
 		
+		valor=GPIO.input(21)
+		if valor == 0:
+			presenciaAgua="Se detecto agua"#nivel bajo indica presencia de agua
+		else:
+			presenciaAgua="Cesto seco"
+		f.write(sTimeStamp + ' Humedad suelo: ' + presenciaAgua + ' \n') #se escribe en el archivo formato, cadena de la distancia
+		print(sTimeStamp+' Humedad suelo: ' + presenciaAgua+'\n')
 		#MQTT
 		#publica distancia
 		clientDistancia.publish('samsung/codigoiot/casa/cesto/distancia',distance)#se publica la distancia en mqtt
@@ -68,7 +82,8 @@ try: #manejo de excepciones
 		clientTemperatura.publish('samsung/codigoiot/casa/cesto/temperatura',temperatura)#se publica la temperatura en mqtt
 		#publica Humedad
 		clientHumedad.publish('samsung/codigoiot/casa/cesto/humedad',humedad)#se publica la humedad en mqtt
-
+		#publica Humedad en Tierra
+		clientHumedadTierra.publish('samsung/codigoiot/casa/cesto/humedadTierra',presenciaAgua)#se publica la humedad en el suelo
 		#comando para suscribirse en consola
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i miCliente
 		#comando para publicar en consola
