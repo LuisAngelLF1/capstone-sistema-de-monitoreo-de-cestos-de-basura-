@@ -3,7 +3,6 @@ Repositorio para proyecto Capstone de IoT
 # Proyecto Capstone Sistema de Monitoreo de Cestos de Basura
 
 ## Integrantes
-- Laura Gabriel Santes [LauraGabrielSantes](https://github.com/LauraGabrielSantes)
 - Luis Ángel López Flores  [LuisAngelLF1](https://github.com/LuisAngelLF1)
 
 ## Objetivos
