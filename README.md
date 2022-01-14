@@ -17,6 +17,7 @@ Monitorear cestos de basura para su recolección.
 ## Materiales:
 - Sensor ultra sónico HC-SR04
 - Sensor de temperatura-humedad DHT11
+- Sensor de humedad en tierra grove
 - Raspberry Pi 3  
 
 
