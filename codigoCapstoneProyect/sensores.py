@@ -7,7 +7,15 @@ import time #libreria para funcionalidaes relacionadas al tiempo
 from datetime import datetime
 import paho.mqtt.client #libreria para manejo de mqtt
 import Adafruit_DHT  #libreria para manejo del sensor dht11 de temperatura
+import mysql.connector #libreria para manejo de bd
 
+#Conexión con el servidor MySQL Server
+conexionMySQL = mysql.connector.connect(
+    host='localhost',
+    user='luis',
+    passwd='',
+    db='proyectoiot'
+)
 GPIO.setmode(GPIO.BCM) #se establece el modo BCM (por GPIO)de los pines raspberry
 GPIO_TRIGGER = 23 #trigger del sensor hcr04 se activa para enviar señal
 GPIO_ECHO    = 24 #echo del sensor hcr04
@@ -56,6 +64,7 @@ try: #manejo de excepciones
 			stop = time.time()# registro alto de tiempo
 		elapsed = stop-start #resta para saber lapso de tiempo
 		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo(t(s)*velSonido(343m/s)/2) 1m/s=1*10**2cm/s
+		distance = round(distance,2) #se redondea a dos cifras la cantidad
 		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
 		f.write(sTimeStamp + ' Distancia: ' + str(distance) + ' cm \n') #se escribe en el archivo formato, cadena de la distancia
 		print (sTimeStamp + ' Distancia: ' + str(distance)+' cm') #se muestra en consola
@@ -88,6 +97,13 @@ try: #manejo de excepciones
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i miCliente
 		#comando para publicar en consola
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i otroCliente
+		#Consulta SQL que ejecutaremos, en este caso un insert
+		sqlInsertarRegistro = f"""INSERT INTO registrosensores (fecha, distancia, temperatura, humedad, agua) VALUES ("{sTimeStamp}",{distance}, {temperatura}, {humedad}, "{presenciaAgua}")"""
+		#Establecemos un cursor para la conexión con el servidor MySQL
+		cursor = conexionMySQL.cursor()
+		#A partir del cursor, ejecutamos la consulta SQL de inserción
+		cursor.execute(sqlInsertarRegistro)
+		conexionMySQL.commit()
 		time.sleep(1) #espera de 1s
 		sTmpFileStamp = time.strftime('%Y %m %d %H') #formato auxiliar año mes dia hora
 		if sTmpFileStamp != sFileStamp: #si el primer formato es distinto e este auxiliar (diferente hora)
@@ -102,3 +118,6 @@ except KeyboardInterrupt: #excepcion
 	print ('\n' + 'termina la captura de datos.' + '\n')#indica fin de captura
 	f.close() #cierra el archivo
 	GPIO.cleanup() #limpia los pines
+	#Se cierra la conexion mysql
+	cursor.close()
+	conexionMySQL.close()
