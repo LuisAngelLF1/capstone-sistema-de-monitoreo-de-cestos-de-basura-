@@ -20,7 +20,6 @@ Monitorear cestos de basura para su recolección oportuna y prevención de mal e
 - Sensor de humedad en tierra grove
 - Raspberry Pi 3  
 
-
 ## Descripción
 El manejo de los desechos es clave en áreas urbanas para el cuidado del medio ambiente; requiere de planeación y presupuesto. Los contenedores no siempre tienen un control de limpieza, la basura se acumula y su estado decae haciéndolo un peligro para el medio ambiente y las comunidades. Es por eso que con este proyecto se pretende tener un control e indicadores del estado de los cestos de basura para prevenir riesgos de sanidad y acumulación de la misma.  
 

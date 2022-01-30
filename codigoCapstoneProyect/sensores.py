@@ -5,20 +5,46 @@
 import RPi.GPIO as GPIO#se importa la libreria para manejar los pines de la raspberry
 import time #libreria para funcionalidaes relacionadas al tiempo
 from datetime import datetime
-import paho.mqtt.client
+import paho.mqtt.client #libreria para manejo de mqtt
+import Adafruit_DHT  #libreria para manejo del sensor dht11 de temperatura
+import mysql.connector #libreria para manejo de bd
 
-GPIO.setmode(GPIO.BCM) #se establece el modo BCM de los pines raspberry
-GPIO_TRIGGER = 23 #trigger del sensor hcr04
+#Conexión con el servidor MySQL Server
+conexionMySQL = mysql.connector.connect(
+    host='localhost',
+    user='luis',
+    passwd='',
+    db='proyectoiot'
+)
+GPIO.setmode(GPIO.BCM) #se establece el modo BCM (por GPIO)de los pines raspberry
+GPIO_TRIGGER = 23 #trigger del sensor hcr04 se activa para enviar señal
 GPIO_ECHO    = 24 #echo del sensor hcr04
 GPIO.setup(GPIO_TRIGGER,GPIO.OUT) #establece el pin trigger como salida
 GPIO.setup(GPIO_ECHO,GPIO.IN) #establece el pin echo como entrada
 GPIO.output(GPIO_TRIGGER, False) #pin de salida trigger inicialmente apagado
 
+# read data using pin 4
+sensor = Adafruit_DHT.DHT11 
+pindht = 4 #referencia a pin 4 bcm asociado a sensor de temperatura
+
+#tierra grove
+pinTierra=21
+GPIO.setup(pinTierra,GPIO.IN)
+
 #MQTT
 def on_connect(client, userdata, flags, rc):
 	print('connected (%s)' % client._client_id)
-client = paho.mqtt.client.Client(client_id='sensorDistancia', clean_session=False)
-client.connect(host='localhost', port=1883)
+clientDistancia = paho.mqtt.client.Client(client_id='sensorDistancia', clean_session=False)
+clientDistancia.connect(host='localhost', port=1883)
+#cliente mqtt de temperatura
+clientTemperatura = paho.mqtt.client.Client(client_id='sensorTemperatura', clean_session=False)
+clientTemperatura.connect(host='localhost', port=1883)
+#cliente mqtt de humedad
+clientHumedad = paho.mqtt.client.Client(client_id='sensorHumedad', clean_session=False)
+clientHumedad.connect(host='localhost', port=1883)
+#cliente mqtt de humedad en tierra grove
+clientHumedadTierra = paho.mqtt.client.Client(client_id='sensorHumedadTierra', clean_session=False)
+clientHumedadTierra.connect(host='localhost', port=1883)
 
 sFileStamp = time.strftime('%Y %m %d %H')#formato año mes dia hora
 sFileName = '\out' + sFileStamp + '.txt' #se concatena el formato con la extension .txt
@@ -28,7 +54,6 @@ print ("Inicia la toma de datos") #impresion en consola
 
 try: #manejo de excepciones
 	while True: #inicio bucle while
-		print ("acerque el objeto para medir la distancia") #impresion por consola
 		GPIO.output(GPIO_TRIGGER,True) #la salida trigger encendido
 		time.sleep(0.00001) # espera de 10 micros 0.00001s 
 		GPIO.output(GPIO_TRIGGER,False) #salida trigger apagado
@@ -38,16 +63,47 @@ try: #manejo de excepciones
 		while GPIO.input(GPIO_ECHO)==1:# mientras echo encendido
 			stop = time.time()# registro alto de tiempo
 		elapsed = stop-start #resta para saber lapso de tiempo
-		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo
+		distance = (elapsed * 34300)/2 #formula para saber la distancia basado en el tiempo(t(s)*velSonido(343m/s)/2) 1m/s=1*10**2cm/s
+		distance = round(distance,2) #se redondea a dos cifras la cantidad
 		sTimeStamp = time.strftime('%Y/%m/%d %H:%M:%S') #formato año mes dia hora minuto segundo
-		f.write(sTimeStamp + ',' + str(distance) + '\n') #se escribe en el archivo formato, cadena de la distancia
-		print (sTimeStamp + ' ' + str(distance)) #se muestra en consola
+		f.write(sTimeStamp + ' Distancia: ' + str(distance) + ' cm \n') #se escribe en el archivo formato, cadena de la distancia
+		print (sTimeStamp + ' Distancia: ' + str(distance)+' cm') #se muestra en consola
+		#dht
+		humedad, temperatura = Adafruit_DHT.read_retry(sensor, pindht) #se len los valores del sensor de temperatura
+		
+		f.write(sTimeStamp + ' Temperatura: ' + str(temperatura) + ' C° \n') #se escribe en el archivo formato, cadena de la distancia
+		f.write(sTimeStamp + ' Humedad: ' + str(humedad) + ' % \n') #se escribe en el archivo formato, cadena de la distancia
+		print(sTimeStamp+' Temperatura: ' + str(temperatura) + ' C°')
+		print(sTimeStamp + ' Humedad: ' + str(humedad) + ' %')
+		#grove tierra
+		
+		valor=GPIO.input(21)
+		if valor == 0:
+			presenciaAgua="Se detecto agua"#nivel bajo indica presencia de agua
+		else:
+			presenciaAgua="Cesto seco"
+		f.write(sTimeStamp + ' Humedad suelo: ' + presenciaAgua + ' \n') #se escribe en el archivo formato, cadena de la distancia
+		print(sTimeStamp+' Humedad suelo: ' + presenciaAgua+'\n')
 		#MQTT
-		client.publish('samsung/codigoiot/casa/cesto',distance)#se publica la distancia en mqtt
+		#publica distancia
+		clientDistancia.publish('samsung/codigoiot/casa/cesto/distancia',distance)#se publica la distancia en mqtt
+		#publica Temperatura
+		clientTemperatura.publish('samsung/codigoiot/casa/cesto/temperatura',temperatura)#se publica la temperatura en mqtt
+		#publica Humedad
+		clientHumedad.publish('samsung/codigoiot/casa/cesto/humedad',humedad)#se publica la humedad en mqtt
+		#publica Humedad en Tierra
+		clientHumedadTierra.publish('samsung/codigoiot/casa/cesto/humedadTierra',presenciaAgua)#se publica la humedad en el suelo
 		#comando para suscribirse en consola
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i miCliente
 		#comando para publicar en consola
 		#mosquitto_sub -h localhost -t samsung/codigoiot/casa/cesto -q 2 -i otroCliente
+		#Consulta SQL que ejecutaremos, en este caso un insert
+		sqlInsertarRegistro = f"""INSERT INTO registrosensores (fecha, distancia, temperatura, humedad, agua) VALUES ("{sTimeStamp}",{distance}, {temperatura}, {humedad}, "{presenciaAgua}")"""
+		#Establecemos un cursor para la conexión con el servidor MySQL
+		cursor = conexionMySQL.cursor()
+		#A partir del cursor, ejecutamos la consulta SQL de inserción
+		cursor.execute(sqlInsertarRegistro)
+		conexionMySQL.commit()
 		time.sleep(1) #espera de 1s
 		sTmpFileStamp = time.strftime('%Y %m %d %H') #formato auxiliar año mes dia hora
 		if sTmpFileStamp != sFileStamp: #si el primer formato es distinto e este auxiliar (diferente hora)
@@ -62,3 +118,6 @@ except KeyboardInterrupt: #excepcion
 	print ('\n' + 'termina la captura de datos.' + '\n')#indica fin de captura
 	f.close() #cierra el archivo
 	GPIO.cleanup() #limpia los pines
+	#Se cierra la conexion mysql
+	cursor.close()
+	conexionMySQL.close()
